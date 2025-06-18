@@ -1,19 +1,29 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '../api'; // Impor instance axios
 
-const username = ref('');
+const email = ref('');
 const password = ref('');
 const error = ref('');
 const router = useRouter();
 
-const handleLogin = () => {
-  // Simulasi autentikasi (ganti dengan API jika ada)
-  if (username.value === 'admin' && password.value === 'password') {
+const handleLogin = async () => {
+  try {
+    const response = await api.post('/login', {
+      email: email.value,
+      password: password.value,
+    });
+
+    // Simpan token atau status autentikasi
     localStorage.setItem('isAuthenticated', 'true');
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
+
     router.push('/dashboard');
-  } else {
-    error.value = 'Username atau password salah!';
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Email atau password salah!';
   }
 };
 </script>
@@ -23,11 +33,11 @@ const handleLogin = () => {
     <h2>Login</h2>
     <form @submit.prevent="handleLogin">
       <div>
-        <label for="username">Username:</label>
+        <label for="email">Email:</label>
         <input
-          type="text"
-          id="username"
-          v-model="username"
+          type="email"
+          id="email"
+          v-model="email"
           required
         />
       </div>

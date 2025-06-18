@@ -1,8 +1,9 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import api from '../api'; // Impor instance axios
 
-const username = ref('');
+const name = ref('');
 const email = ref('');
 const password = ref('');
 const confirmPassword = ref('');
@@ -10,9 +11,9 @@ const error = ref('');
 const success = ref('');
 const router = useRouter();
 
-const handleRegister = () => {
-  // Validasi sederhana
-  if (!username.value || !email.value || !password.value || !confirmPassword.value) {
+const handleRegister = async () => {
+  // Validasi sederhana di sisi klien
+  if (!name.value || !email.value || !password.value || !confirmPassword.value) {
     error.value = 'Semua kolom harus diisi!';
     return;
   }
@@ -21,26 +22,24 @@ const handleRegister = () => {
     return;
   }
 
-  // Simulasi pendaftaran (ganti dengan panggilan API ke backend)
   try {
-    // Contoh: Simpan data ke localStorage (hanya untuk demo)
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (users.some(user => user.username === username.value)) {
-      error.value = 'Username sudah terdaftar!';
-      return;
-    }
-    users.push({ username: username.value, email: email.value, password: password.value });
-    localStorage.setItem('users', JSON.stringify(users));
-    
+    // Panggilan API ke endpoint register
+    const response = await api.post('/register', {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+      password_confirmation: confirmPassword.value,
+    });
+
     success.value = 'Pendaftaran berhasil! Mengarahkan ke login...';
     error.value = '';
-    
+
     // Redirect ke halaman login setelah 2 detik
     setTimeout(() => {
       router.push('/login');
     }, 2000);
   } catch (err) {
-    error.value = 'Pendaftaran gagal! Silakan coba lagi.';
+    error.value = err.response?.data?.message || 'Pendaftaran gagal! Silakan coba lagi.';
   }
 };
 </script>
@@ -50,11 +49,11 @@ const handleRegister = () => {
     <h2>Register</h2>
     <form @submit.prevent="handleRegister">
       <div>
-        <label for="username">Username:</label>
+        <label for="name">Name:</label>
         <input
           type="text"
-          id="username"
-          v-model="username"
+          id="name"
+          v-model="name"
           required
         />
       </div>
